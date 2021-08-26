@@ -1,0 +1,81 @@
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Zoogle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tarekraafat-autocomplete.js/10.2.6/autoComplete.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tarekraafat-autocomplete.js/10.2.6/css/autoComplete.min.css">
+    <style>
+        .container {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <input id="autoComplete" type="search" dir="ltr" spellcheck=false autocorrect="off" autocomplete="off" autocapitalize="off" maxlength="2048" tabindex="1">
+    </div>
+
+    <script>
+        const autoCompleteJS = new autoComplete({
+            selector: "#autoComplete",
+            placeHolder: "Search for Species...",
+            data: {
+                src: async (query) => {
+                    try {
+                        query = query.toLowerCase();
+                        // Loading placeholder text
+                        document
+                        .getElementById("autoComplete")
+                        .setAttribute("placeholder", "Loading...");
+                        // Fetch External Data Source
+                        const source = await fetch(`/find?name=${query}`);
+                        const data = await source.json();
+                        // Post Loading placeholder text
+                        document
+                        .getElementById("autoComplete")
+                        .setAttribute("placeholder", autoCompleteJS.placeHolder);
+                        // Returns Fetched data
+                        return data;
+                    } catch (error) {
+                        return error;
+                    }
+                }
+                ,
+                cache: false,
+            },
+            resultsList: {
+                element: (list, data) => {
+                    if (!data.results.length) {
+                        // Create "No Results" message element
+                        const message = document.createElement("div");
+                        // Add class to the created element
+                        message.setAttribute("class", "no_result");
+                        // Add message text content
+                        message.innerHTML = `<span>Found No Results for "${data.query}"</span>`;
+                        // Append message element to the results list
+                        list.prepend(message);
+                    }
+                },
+                noResults: true,
+            },
+            resultItem: {
+                highlight: true
+            },
+            events: {
+                input: {
+                    selection: (event) => {
+                        const selection = event.detail.selection.value;
+                        autoCompleteJS.input.value = selection;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
